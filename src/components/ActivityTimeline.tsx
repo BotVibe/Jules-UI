@@ -85,6 +85,20 @@ const ActivityItem = ({ activity }: { activity: Activity }) => {
         </div>
       );
     }
+    if (activity.agentMessaged) {
+      return (
+        <div className="mt-2 text-sm bg-purple-50 text-purple-900 p-3 rounded-md">
+          {activity.agentMessaged.message}
+        </div>
+      );
+    }
+    if (activity.userMessaged) {
+      return (
+        <div className="mt-2 text-sm bg-gray-100 text-gray-800 p-3 rounded-md">
+          {activity.userMessaged.message}
+        </div>
+      );
+    }
     if (activity.sessionFailed) {
       return (
         <div className="mt-2 text-sm text-red-600 bg-red-50 p-2 rounded">
