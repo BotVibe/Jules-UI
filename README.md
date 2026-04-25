@@ -18,7 +18,23 @@ Jules Mobile is a lightweight, mobile-first Progressive Web App (PWA) client for
 - **Data Fetching:** SWR for reactive polling
 - **PWA:** `vite-plugin-pwa` for manifest and service worker generation
 
-## Getting Started
+## Multi-User Support
+
+**Yes, multiple users can use the same deployed instance simultaneously.**
+Because this is a static Single Page Application (SPA), all logic runs directly in the user's browser. The API Key is saved securely to each individual user's `localStorage`. This means User A and User B can navigate to the exact same URL, enter their own respective API keys, and interact with their own private Jules sessions without any overlap or server-side collision.
+
+## Deployment to GitHub Pages
+
+This project is configured for automated deployment to GitHub Pages using GitHub Actions.
+
+### Setup Instructions for Repository Owners:
+1. Push this code to a public or private GitHub repository.
+2. In your GitHub repository, go to **Settings > Pages**.
+3. Under **Build and deployment > Source**, select **GitHub Actions**.
+4. The `.github/workflows/deploy.yml` file is already included in this repository. Any push to the `main` or `master` branch will automatically trigger a build and deployment.
+5. Wait for the Action to complete, and your app will be live at `https://<your-github-username>.github.io/<your-repo-name>/`.
+
+## Getting Started (Local Development)
 
 ### Prerequisites
 
@@ -30,7 +46,7 @@ Jules Mobile is a lightweight, mobile-first Progressive Web App (PWA) client for
 1. Clone the repository and navigate into the project directory.
 2. Install dependencies:
    ```bash
-   npm install
+   npm install --legacy-peer-deps
    ```
 
 ### Environment Variables (Optional)
