@@ -1,73 +1,62 @@
-# React + TypeScript + Vite
+# Jules Mobile PWA
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Jules Mobile is a lightweight, mobile-first Progressive Web App (PWA) client for the Google Jules API. It allows you to create, monitor, and interact with your Jules AI coding sessions directly from your mobile device (optimized for iOS/Safari).
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+1. **Auth & Settings (Local & Secure):** Securely store your Google Jules API key in the browser's local storage. Input fields are optimized for iOS keyboards (no auto-correct, auto-capitalize).
+2. **Repository Selection:** Fetches your connected GitHub repositories via the Jules API and presents them in a touch-friendly UI.
+3. **Session Management:** Start a new session with a text prompt and target repository directly from your phone.
+4. **Live Activity Polling:** Automatically polls the active session status every 5 seconds, displaying progress, plans, and events in a vertical timeline.
+5. **Mobile-Optimized Artifact Viewer:** Displays code diffs and terminal outputs beautifully on small screens with responsive line wrapping and clear syntax highlighting.
 
-## React Compiler
+## Tech Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **Framework:** React + TypeScript
+- **Build Tool:** Vite
+- **Styling:** Tailwind CSS v4
+- **Data Fetching:** SWR for reactive polling
+- **PWA:** `vite-plugin-pwa` for manifest and service worker generation
 
-## Expanding the ESLint configuration
+## Getting Started
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Prerequisites
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- Node.js (v18+)
+- A Google Jules API Key ([Get one here](https://jules.google.com/settings))
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+### Installation
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+1. Clone the repository and navigate into the project directory.
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+### Environment Variables (Optional)
+
+By default, the app points to the official Jules API `https://jules.googleapis.com/v1alpha`. If you need to override this, create a `.env` file in the root:
+
+```env
+VITE_JULES_API_BASE_URL="your-custom-endpoint"
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Development Server
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm run dev
 ```
+
+Open `http://localhost:5173` in your browser.
+
+### Building for Production
+
+```bash
+npm run build
+```
+
+The compiled static assets and service worker will be generated in the `dist/` directory.
+
+## License
+
+MIT

@@ -1,5 +1,4 @@
 import { useMemo } from 'react';
-import _ReactDiffViewer from 'react-diff-viewer-continued';
 
 interface ArtifactDiffProps {
   diff: string;

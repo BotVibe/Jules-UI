@@ -13,7 +13,6 @@
     "@tailwindcss/vite": "^4.2.4",
     "lucide-react": "^1.11.0",
     "react": "^19.2.5",
-    "react-diff-viewer-continued": "^4.2.2",
     "react-dom": "^19.2.5",
     "react-router-dom": "^7.14.2",
     "swr": "^2.4.1",
