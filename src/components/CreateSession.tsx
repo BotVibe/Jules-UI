@@ -27,10 +27,15 @@ export const CreateSession = ({ apiKey, onSessionCreated }: CreateSessionProps) 
     setError(null);
 
     try {
+      const selectedSourceObject = sourcesData?.sources.find((s) => s.name === selectedSource);
+      const startingBranch = selectedSourceObject?.githubRepo?.defaultBranch?.displayName || "main";
       const request: CreateSessionRequest = {
         prompt,
         sourceContext: {
           source: selectedSource,
+          githubRepoContext: {
+            startingBranch,
+          }
         },
       };
 
