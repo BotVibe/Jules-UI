@@ -72,8 +72,8 @@ export interface Activity {
   };
   artifacts?: any[];
   sessionCompleted?: any;
-  agentMessaged?: { message: string };
-  userMessaged?: { message: string };
+  agentMessaged?: { agentMessage: string };
+  userMessaged?: { userMessage: string };
   sessionFailed?: {
     reason: string;
   };
