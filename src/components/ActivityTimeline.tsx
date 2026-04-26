@@ -11,6 +11,8 @@ interface ActivityTimelineProps {
   sessionId: string;
 }
 export const ActivityTimeline = ({ apiKey, sessionId }: ActivityTimelineProps) => {
+  const [showAll, setShowAll] = useState(false);
+
   const [messagePrompt, setMessagePrompt] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
@@ -53,6 +55,7 @@ export const ActivityTimeline = ({ apiKey, sessionId }: ActivityTimelineProps) =
   const sortedActivities = [...activities].sort((a, b) =>
     new Date(a.createTime).getTime() - new Date(b.createTime).getTime()
   );
+  const displayedActivities = showAll ? sortedActivities : sortedActivities.slice(-5);
 
   return (
     <div className="p-4 bg-white shadow rounded-lg max-w-md mx-auto mb-6">
@@ -62,7 +65,12 @@ export const ActivityTimeline = ({ apiKey, sessionId }: ActivityTimelineProps) =
       </h2>
 
       <div className="flex flex-col gap-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-gray-200 before:to-transparent">
-        {sortedActivities.map((act) => (
+        {!showAll && sortedActivities.length > 5 && (
+          <button onClick={() => setShowAll(true)} className="text-xs text-blue-500 hover:text-blue-700 py-2">
+            Load older activities ({sortedActivities.length - 5} hidden)...
+          </button>
+        )}
+        {displayedActivities.map((act) => (
           <ActivityItem key={act.id} activity={act} />
         ))}
         {isLoading ? (
