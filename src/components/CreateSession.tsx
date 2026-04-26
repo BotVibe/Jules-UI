@@ -1,3 +1,4 @@
+import { mutate } from "swr";
 import { useState } from 'react';
 import useSWR from 'swr';
 import { getSources, createSession } from '../lib/api';
@@ -70,8 +71,13 @@ export const CreateSession = ({ apiKey, onSessionCreated }: CreateSessionProps) 
       )}
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <label className="flex flex-col gap-1 text-sm text-gray-600">
-          Source Repository
+        <div className="flex items-center justify-between">
+          <label className="flex flex-col gap-1 text-sm text-gray-600 w-full">
+            <div className="flex justify-between w-full">
+              <span>Source Repository</span>
+              <button type="button" onClick={() => mutate(["sources", apiKey])} className="text-blue-500 hover:text-blue-700 text-xs">Refresh</button>
+            </div>
+
           <select
             value={selectedSource}
             onChange={(e) => setSelectedSource(e.target.value)}
@@ -86,9 +92,11 @@ export const CreateSession = ({ apiKey, onSessionCreated }: CreateSessionProps) 
             ))}
           </select>
         </label>
+        </div>
 
-        <label className="flex flex-col gap-1 text-sm text-gray-600">
+        <label className="flex flex-col gap-1 text-sm text-gray-600 w-full">
           Prompt
+
           <textarea
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
