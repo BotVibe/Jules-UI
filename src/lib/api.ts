@@ -96,3 +96,11 @@ export const getActivities = async (apiKey: string, sessionId: string, pageSize 
     headers: getHeaders(apiKey),
   });
 };
+
+export const sendMessage = async (apiKey: string, sessionId: string, prompt: string): Promise<void> => {
+  await fetchWithHandler<void>(`${JULES_API_BASE_URL}/sessions/${sessionId}:sendMessage`, {
+    method: "POST",
+    headers: getHeaders(apiKey),
+    body: JSON.stringify({ prompt }),
+  });
+};

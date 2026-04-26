@@ -1,15 +1,21 @@
 import useSWR from 'swr';
-import { getActivities } from '../lib/api';
+import { getActivities, sendMessage } from '../lib/api';
 import type { Activity } from '../types/jules';
 import { ArtifactDiff } from './ArtifactDiff';
 import { CheckCircle2, CircleDashed, XCircle, Bot, User, Clock } from 'lucide-react';
 
+import { useState } from "react";
+import { Send } from "lucide-react";
 interface ActivityTimelineProps {
   apiKey: string;
   sessionId: string;
 }
-
 export const ActivityTimeline = ({ apiKey, sessionId }: ActivityTimelineProps) => {
+  const [messagePrompt, setMessagePrompt] = useState("");
+  const [isSending, setIsSending] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
+
+
   // Poll every 5 seconds
   const { data, error } = useSWR(
     apiKey && sessionId ? ['activities', apiKey, sessionId] : null,
@@ -24,6 +30,21 @@ export const ActivityTimeline = ({ apiKey, sessionId }: ActivityTimelineProps) =
       </div>
     );
   }
+
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!messagePrompt.trim()) return;
+    setIsSending(true);
+    setSendError(null);
+    try {
+      await sendMessage(apiKey, sessionId, messagePrompt);
+      setMessagePrompt("");
+    } catch (err: any) {
+      setSendError(err.message || "Failed to send message");
+    } finally {
+      setIsSending(false);
+    }
+  };
 
   const isLoading = (!data && !error) || (error && error.status === 404);
 
@@ -53,9 +74,33 @@ export const ActivityTimeline = ({ apiKey, sessionId }: ActivityTimelineProps) =
           <div className="text-gray-500 text-sm text-center py-4">Waiting for activities...</div>
         )}
       </div>
+
+      {!isLoading && !error && (
+        <form onSubmit={handleSendMessage} className="mt-6 flex flex-col gap-2 pt-4 border-t border-gray-100">
+          {sendError && <div className="text-xs text-red-600 bg-red-50 p-2 rounded">{sendError}</div>}
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              value={messagePrompt}
+              onChange={(e) => setMessagePrompt(e.target.value)}
+              placeholder="Reply to Jules..."
+              className="flex-1 border rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50"
+              disabled={isSending}
+            />
+            <button
+              type="submit"
+              disabled={isSending || !messagePrompt.trim()}
+              className="p-2 rounded-full bg-blue-600 text-white disabled:bg-gray-400 hover:bg-blue-700 transition"
+            >
+              <Send className="w-4 h-4" />
+            </button>
+          </div>
+        </form>
+      )}
     </div>
   );
 };
+
 
 const ActivityItem = ({ activity }: { activity: Activity }) => {
   const isAgent = activity.originator === 'agent' || activity.originator === 'system';
@@ -95,14 +140,14 @@ const ActivityItem = ({ activity }: { activity: Activity }) => {
     if (activity.agentMessaged) {
       return (
         <div className="mt-2 text-sm bg-purple-50 text-purple-900 p-3 rounded-md">
-          {activity.agentMessaged.message || JSON.stringify(activity.agentMessaged)}
+          {activity.agentMessaged.agentMessage || JSON.stringify(activity.agentMessaged)}
         </div>
       );
     }
     if (activity.userMessaged) {
       return (
         <div className="mt-2 text-sm bg-gray-100 text-gray-800 p-3 rounded-md">
-          {activity.userMessaged.message || JSON.stringify(activity.userMessaged)}
+          {activity.userMessaged.userMessage || JSON.stringify(activity.userMessaged)}
         </div>
       );
     }
