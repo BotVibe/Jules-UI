@@ -8,7 +8,13 @@ import { BurgerMenu } from "./components/BurgerMenu";
 
 function localStorageProvider() {
   const map = new Map<string, any>(JSON.parse(localStorage.getItem("app-cache") || "[]"));
-  window.addEventListener("beforeunload", () => {
+  window.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") {
+      const appCache = JSON.stringify(Array.from(map.entries()));
+      localStorage.setItem("app-cache", appCache);
+    }
+  });
+  window.addEventListener("pagehide", () => {
     const appCache = JSON.stringify(Array.from(map.entries()));
     localStorage.setItem("app-cache", appCache);
   });
