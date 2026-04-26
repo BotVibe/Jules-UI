@@ -49,6 +49,8 @@ export const CreateSession = ({ apiKey, onSessionCreated }: CreateSessionProps) 
     }
   };
 
+  const isLoadingSources = !sourcesData && !sourcesError;
+
   const sources = sourcesData?.sources || [];
 
   return (
@@ -76,7 +78,7 @@ export const CreateSession = ({ apiKey, onSessionCreated }: CreateSessionProps) 
             required
             className="border rounded p-2 text-base text-gray-900 bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:outline-none"
           >
-            <option value="" disabled>Select a repository</option>
+            {isLoadingSources ? <option value="" disabled>Loading repositories...</option> : <option value="" disabled>Select a repository</option>}
             {sources.map((src) => (
               <option key={src.name} value={src.name}>
                 {src.githubRepo.owner}/{src.githubRepo.repo}

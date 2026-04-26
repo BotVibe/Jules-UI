@@ -17,13 +17,15 @@ export const ActivityTimeline = ({ apiKey, sessionId }: ActivityTimelineProps) =
     { refreshInterval: 5000 }
   );
 
-  if (error) {
+  if (error && error.status !== 404) {
     return (
       <div className="p-4 bg-red-50 text-red-600 rounded-lg max-w-md mx-auto mb-6">
         Failed to load activities: {error.message}
       </div>
     );
   }
+
+  const isLoading = (!data && !error) || (error && error.status === 404);
 
   const activities = data?.activities || [];
   // Sort activities by createTime ascending
@@ -42,7 +44,12 @@ export const ActivityTimeline = ({ apiKey, sessionId }: ActivityTimelineProps) =
         {sortedActivities.map((act) => (
           <ActivityItem key={act.id} activity={act} />
         ))}
-        {activities.length === 0 && !error && (
+        {isLoading ? (
+          <div className="text-gray-500 text-sm text-center py-4 flex flex-col items-center gap-2">
+            <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+            {error && error.status === 404 ? "Initializing session..." : "Loading session activities..."}
+          </div>
+        ) : activities.length === 0 && !error && (
           <div className="text-gray-500 text-sm text-center py-4">Waiting for activities...</div>
         )}
       </div>
@@ -88,14 +95,14 @@ const ActivityItem = ({ activity }: { activity: Activity }) => {
     if (activity.agentMessaged) {
       return (
         <div className="mt-2 text-sm bg-purple-50 text-purple-900 p-3 rounded-md">
-          {activity.agentMessaged.message}
+          {activity.agentMessaged.message || JSON.stringify(activity.agentMessaged)}
         </div>
       );
     }
     if (activity.userMessaged) {
       return (
         <div className="mt-2 text-sm bg-gray-100 text-gray-800 p-3 rounded-md">
-          {activity.userMessaged.message}
+          {activity.userMessaged.message || JSON.stringify(activity.userMessaged)}
         </div>
       );
     }
@@ -122,13 +129,21 @@ const ActivityItem = ({ activity }: { activity: Activity }) => {
                   </div>
                 );
              }
-             return null;
+             return (
+      <div className="mt-2 text-xs bg-gray-100 text-gray-800 p-2 rounded-md overflow-x-auto whitespace-pre-wrap break-all">
+        {JSON.stringify(activity, null, 2)}
+      </div>
+    );
           })}
         </div>
       );
     }
 
-    return null;
+    return (
+      <div className="mt-2 text-xs bg-gray-100 text-gray-800 p-2 rounded-md overflow-x-auto whitespace-pre-wrap break-all">
+        {JSON.stringify(activity, null, 2)}
+      </div>
+    );
   };
 
   return (
