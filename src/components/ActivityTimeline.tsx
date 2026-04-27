@@ -22,7 +22,7 @@ export const ActivityTimeline = ({ apiKey, sessionId }: ActivityTimelineProps) =
   const { data: sessionData } = useSWR(
     apiKey && sessionId ? ["session", apiKey, sessionId] : null,
     ([, key, id]) => getSession(key, id),
-    { refreshInterval: 5000 }
+    { refreshInterval: 5000, revalidateOnMount: true }
   );
 
   const handleApprovePlan = async () => {
@@ -40,16 +40,9 @@ export const ActivityTimeline = ({ apiKey, sessionId }: ActivityTimelineProps) =
   const { data, error } = useSWR(
     apiKey && sessionId ? ['activities', apiKey, sessionId] : null,
     ([, key, id]) => getActivities(key, id),
-    { refreshInterval: 5000 }
+    { refreshInterval: 5000, revalidateOnMount: true }
   );
 
-  if (error && error.status !== 404) {
-    return (
-      <div className="p-4 bg-red-50 text-red-600 rounded-lg max-w-md mx-auto mb-6">
-        Failed to load activities: {error.message}
-      </div>
-    );
-  }
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,6 +70,15 @@ export const ActivityTimeline = ({ apiKey, sessionId }: ActivityTimelineProps) =
 
   return (
     <div className="p-4 bg-white shadow rounded-lg max-w-md mx-auto mb-6">
+
+      {sessionData && (
+        <div className="mb-6 pb-4 border-b border-gray-100">
+          <h1 className="text-xl font-bold text-gray-900 leading-tight">{sessionData.title || "Untitled Session"}</h1>
+          {sessionData.sourceContext?.source && (
+            <p className="text-xs text-gray-500 mt-1 font-mono">{sessionData.sourceContext.source.split("/").slice(-1)[0]}</p>
+          )}
+        </div>
+      )}
       <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center justify-between">
         <span>Session Timeline</span>
         <span className="text-xs text-gray-500 font-normal">Polling active...</span>
@@ -181,14 +183,14 @@ const ActivityItem = ({ activity }: { activity: Activity }) => {
     if (activity.agentMessaged) {
       return (
         <div className="mt-2 text-sm bg-purple-50 text-purple-900 p-3 rounded-md">
-          {activity.agentMessaged.agentMessage || JSON.stringify(activity.agentMessaged)}
+          {(activity.agentMessaged as any).agentMessage || (activity.agentMessaged as any).message || (activity.agentMessaged as any).text || (activity.agentMessaged as any).content || JSON.stringify(activity.agentMessaged)}
         </div>
       );
     }
     if (activity.userMessaged) {
       return (
         <div className="mt-2 text-sm bg-gray-100 text-gray-800 p-3 rounded-md">
-          {activity.userMessaged.userMessage || JSON.stringify(activity.userMessaged)}
+          {(activity.userMessaged as any).userMessage || (activity.userMessaged as any).message || (activity.userMessaged as any).text || (activity.userMessaged as any).content || JSON.stringify(activity.userMessaged)}
         </div>
       );
     }
@@ -246,8 +248,11 @@ const ActivityItem = ({ activity }: { activity: Activity }) => {
         <div className="relative z-10 flex items-center justify-center w-10 h-10 bg-white rounded-full shadow-sm border border-gray-100 shrink-0">
           {renderIcon()}
         </div>
-        <div className="pt-2 max-w-[280px]">
-          <p className="text-sm font-semibold text-gray-900">{activity.description}</p>
+        <div className="pt-2 flex-1 min-w-0">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-sm font-semibold text-gray-900 truncate">{activity.description}</p>
+            <button onClick={() => console.log(activity)} className="text-[10px] text-gray-400 hover:text-gray-600 bg-gray-50 px-1.5 py-0.5 rounded">Debug</button>
+          </div>
           {renderContent()}
         </div>
       </div>

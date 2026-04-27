@@ -49,13 +49,15 @@ async function fetchWithHandler<T>(url: string, options: RequestInit): Promise<T
   return JSON.parse(text) as T;
 }
 
-export const getSources = async (apiKey: string, pageSize = 50, pageToken?: string): Promise<ListSourcesResponse> => {
+export const getSources = async (apiKey: string, pageSize = 100, pageToken?: string): Promise<ListSourcesResponse> => {
   const url = new URL(`${JULES_API_BASE_URL}/sources`);
   url.searchParams.append('pageSize', pageSize.toString());
+  url.searchParams.append('t', Date.now().toString());
   if (pageToken) url.searchParams.append('pageToken', pageToken);
 
   return fetchWithHandler<ListSourcesResponse>(url.toString(), {
     method: 'GET',
+    cache: 'no-store',
     headers: getHeaders(apiKey),
   });
 };
@@ -63,10 +65,12 @@ export const getSources = async (apiKey: string, pageSize = 50, pageToken?: stri
 export const getSessions = async (apiKey: string, pageSize = 30, pageToken?: string): Promise<ListSessionsResponse> => {
   const url = new URL(`${JULES_API_BASE_URL}/sessions`);
   url.searchParams.append('pageSize', pageSize.toString());
+  url.searchParams.append('t', Date.now().toString());
   if (pageToken) url.searchParams.append('pageToken', pageToken);
 
   return fetchWithHandler<ListSessionsResponse>(url.toString(), {
     method: 'GET',
+    cache: 'no-store',
     headers: getHeaders(apiKey),
   });
 };
@@ -82,17 +86,20 @@ export const createSession = async (apiKey: string, request: CreateSessionReques
 export const getSession = async (apiKey: string, sessionId: string): Promise<Session> => {
   return fetchWithHandler<Session>(`${JULES_API_BASE_URL}/sessions/${sessionId}`, {
     method: 'GET',
+    cache: 'no-store',
     headers: getHeaders(apiKey),
   });
 };
 
-export const getActivities = async (apiKey: string, sessionId: string, pageSize = 50, pageToken?: string): Promise<ListActivitiesResponse> => {
+export const getActivities = async (apiKey: string, sessionId: string, pageSize = 100, pageToken?: string): Promise<ListActivitiesResponse> => {
   const url = new URL(`${JULES_API_BASE_URL}/sessions/${sessionId}/activities`);
   url.searchParams.append('pageSize', pageSize.toString());
+  url.searchParams.append('t', Date.now().toString());
   if (pageToken) url.searchParams.append('pageToken', pageToken);
 
   return fetchWithHandler<ListActivitiesResponse>(url.toString(), {
     method: 'GET',
+    cache: 'no-store',
     headers: getHeaders(apiKey),
   });
 };

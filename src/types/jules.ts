@@ -26,6 +26,7 @@ export interface Session {
   url: string;
   createTime: string;
   updateTime: string;
+  sourceContext?: { source: string };
   outputs?: any[];
 }
 
