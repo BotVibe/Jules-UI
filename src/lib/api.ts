@@ -91,17 +91,29 @@ export const getSession = async (apiKey: string, sessionId: string): Promise<Ses
   });
 };
 
-export const getActivities = async (apiKey: string, sessionId: string, pageSize = 100, pageToken?: string): Promise<ListActivitiesResponse> => {
-  const url = new URL(`${JULES_API_BASE_URL}/sessions/${sessionId}/activities`);
-  url.searchParams.append('pageSize', pageSize.toString());
-  url.searchParams.append('t', Date.now().toString());
-  if (pageToken) url.searchParams.append('pageToken', pageToken);
+export const getActivities = async (apiKey: string, sessionId: string, pageSize = 100): Promise<ListActivitiesResponse> => {
+  let allActivities: any[] = [];
+  let nextPageToken: string | undefined = undefined;
 
-  return fetchWithHandler<ListActivitiesResponse>(url.toString(), {
-    method: 'GET',
-    cache: 'no-store',
-    headers: getHeaders(apiKey),
-  });
+  do {
+    const url = new URL(`${JULES_API_BASE_URL}/sessions/${sessionId}/activities`);
+    url.searchParams.append('pageSize', pageSize.toString());
+    url.searchParams.append('t', Date.now().toString());
+    if (nextPageToken) url.searchParams.append('pageToken', nextPageToken);
+
+    const response = await fetchWithHandler<ListActivitiesResponse>(url.toString(), {
+      method: 'GET',
+      cache: 'no-store',
+      headers: getHeaders(apiKey),
+    });
+
+    if (response.activities) {
+      allActivities = allActivities.concat(response.activities);
+    }
+    nextPageToken = response.nextPageToken;
+  } while (nextPageToken);
+
+  return { activities: allActivities };
 };
 
 export const sendMessage = async (apiKey: string, sessionId: string, prompt: string): Promise<void> => {

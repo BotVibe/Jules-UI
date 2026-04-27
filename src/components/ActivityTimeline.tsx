@@ -2,7 +2,7 @@ import useSWR from 'swr';
 import { getActivities, sendMessage, getSession, approvePlan } from '../lib/api';
 import type { Activity } from '../types/jules';
 import { ArtifactDiff } from './ArtifactDiff';
-import { CheckCircle2, CircleDashed, XCircle, Bot, User, Clock } from 'lucide-react';
+import { CheckCircle2, CircleDashed, XCircle, Bot, User, Clock, RefreshCw } from 'lucide-react';
 
 import { useState } from "react";
 import { Send } from "lucide-react";
@@ -37,7 +37,7 @@ export const ActivityTimeline = ({ apiKey, sessionId }: ActivityTimelineProps) =
     }
   };
 
-  const { data, error } = useSWR(
+  const { data, error, mutate } = useSWR(
     apiKey && sessionId ? ['activities', apiKey, sessionId] : null,
     ([, key, id]) => getActivities(key, id),
     { refreshInterval: 5000, revalidateOnMount: true }
@@ -81,7 +81,16 @@ export const ActivityTimeline = ({ apiKey, sessionId }: ActivityTimelineProps) =
       )}
       <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center justify-between">
         <span>Session Timeline</span>
-        <span className="text-xs text-gray-500 font-normal">Polling active...</span>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => mutate()}
+            className="flex items-center gap-1 px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded text-xs transition"
+            title="Force refresh"
+          >
+            <RefreshCw className="w-3 h-3" /> Refresh
+          </button>
+          <span className="text-xs text-gray-500 font-normal">Polling active...</span>
+        </div>
       </h2>
 
             {sessionData && sessionData.state === "AWAITING_PLAN_APPROVAL" && (
@@ -149,17 +158,19 @@ const ActivityItem = ({ activity }: { activity: Activity }) => {
   };
 
   const renderContent = () => {
+    const blocks = [];
+
     if (activity.planApproved) {
-      return (
-        <div className="mt-2 text-sm bg-green-50 text-green-800 p-2 rounded border border-green-200 flex items-center gap-2">
+      blocks.push(
+        <div key="plan-approved" className="mt-2 text-sm bg-green-50 text-green-800 p-2 rounded border border-green-200 flex items-center gap-2">
           <CheckCircle2 className="w-4 h-4" /> Plan Approved
         </div>
       );
     }
 
     if (activity.planGenerated) {
-      return (
-        <div className="mt-2 text-sm bg-gray-50 p-3 rounded-md border border-gray-100">
+      blocks.push(
+        <div key="plan-generated" className="mt-2 text-sm bg-gray-50 p-3 rounded-md border border-gray-100">
           <p className="font-medium text-gray-700 mb-2">Plan generated:</p>
           <ol className="list-decimal pl-4 space-y-1">
             {activity.planGenerated.plan.steps.map(step => (
@@ -173,37 +184,45 @@ const ActivityItem = ({ activity }: { activity: Activity }) => {
       );
     }
     if (activity.progressUpdated) {
-      return (
-        <div className="mt-2 text-sm">
+      blocks.push(
+        <div key="progress" className="mt-2 text-sm">
           <p className="font-medium text-gray-800">{activity.progressUpdated.title}</p>
           <p className="text-gray-600">{activity.progressUpdated.description}</p>
         </div>
       );
     }
     if (activity.agentMessaged) {
-      return (
-        <div className="mt-2 text-sm bg-purple-50 text-purple-900 p-3 rounded-md">
-          {(activity.agentMessaged as any).agentMessage || (activity.agentMessaged as any).message || (activity.agentMessaged as any).text || (activity.agentMessaged as any).content || JSON.stringify(activity.agentMessaged)}
-        </div>
-      );
+      const msg = (activity.agentMessaged as any).agentMessage || (activity.agentMessaged as any).message || (activity.agentMessaged as any).text || (activity.agentMessaged as any).content;
+      const textToDisplay = msg || (Object.keys(activity.agentMessaged).length > 0 ? JSON.stringify(activity.agentMessaged) : null);
+      if (textToDisplay && textToDisplay.trim() !== "{}") {
+        blocks.push(
+          <div key="agent-msg" className="mt-2 text-sm bg-purple-50 text-purple-900 p-3 rounded-md whitespace-pre-wrap">
+            {textToDisplay}
+          </div>
+        );
+      }
     }
     if (activity.userMessaged) {
-      return (
-        <div className="mt-2 text-sm bg-gray-100 text-gray-800 p-3 rounded-md">
-          {(activity.userMessaged as any).userMessage || (activity.userMessaged as any).message || (activity.userMessaged as any).text || (activity.userMessaged as any).content || JSON.stringify(activity.userMessaged)}
-        </div>
-      );
+      const msg = (activity.userMessaged as any).userMessage || (activity.userMessaged as any).message || (activity.userMessaged as any).text || (activity.userMessaged as any).content;
+      const textToDisplay = msg || (Object.keys(activity.userMessaged).length > 0 ? JSON.stringify(activity.userMessaged) : null);
+      if (textToDisplay && textToDisplay.trim() !== "{}") {
+        blocks.push(
+          <div key="user-msg" className="mt-2 text-sm bg-gray-100 text-gray-800 p-3 rounded-md whitespace-pre-wrap">
+            {textToDisplay}
+          </div>
+        );
+      }
     }
     if (activity.sessionFailed) {
-      return (
-        <div className="mt-2 text-sm text-red-600 bg-red-50 p-2 rounded">
+      blocks.push(
+        <div key="failed" className="mt-2 text-sm text-red-600 bg-red-50 p-2 rounded">
           Failed: {activity.sessionFailed.reason}
         </div>
       );
     }
     if (activity.artifacts && activity.artifacts.length > 0) {
-      return (
-        <div className="mt-2 space-y-2">
+      blocks.push(
+        <div key="artifacts" className="mt-2 space-y-2">
           {activity.artifacts.map((artifact, i) => {
              if (artifact.changeSet && artifact.changeSet.gitPatch) {
                 return <ArtifactDiff key={i} diff={artifact.changeSet.gitPatch.unidiffPatch} filename={artifact.changeSet.gitPatch.suggestedCommitMessage} />;
@@ -226,20 +245,24 @@ const ActivityItem = ({ activity }: { activity: Activity }) => {
                 );
              }
              return (
-      <div className="mt-2 text-xs bg-gray-100 text-gray-800 p-2 rounded-md overflow-x-auto whitespace-pre-wrap break-all">
-        {JSON.stringify(artifact, null, 2)}
-      </div>
-    );
+              <div key={i} className="mt-2 text-xs bg-gray-100 text-gray-800 p-2 rounded-md overflow-x-auto whitespace-pre-wrap break-all">
+                {JSON.stringify(artifact, null, 2)}
+              </div>
+            );
           })}
         </div>
       );
     }
 
-    return (
-      <div className="mt-2 text-xs bg-gray-100 text-gray-800 p-2 rounded-md overflow-x-auto whitespace-pre-wrap break-all">
-        {JSON.stringify(activity, null, 2)}
-      </div>
-    );
+    if (blocks.length === 0) {
+      return (
+        <div className="mt-2 text-xs bg-gray-100 text-gray-800 p-2 rounded-md overflow-x-auto whitespace-pre-wrap break-all">
+          {JSON.stringify(activity, null, 2)}
+        </div>
+      );
+    }
+
+    return <>{blocks}</>;
   };
 
   return (

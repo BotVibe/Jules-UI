@@ -23,8 +23,8 @@ export const ArtifactDiff = ({ diff, filename }: ArtifactDiffProps) => {
           {filename}
         </div>
       )}
-      <div className="overflow-x-auto bg-gray-50 max-h-64 overflow-y-auto w-full max-w-full">
-        <table className="w-full text-left border-collapse">
+      <div className="overflow-x-hidden bg-gray-50 max-h-64 overflow-y-auto w-full max-w-full">
+        <table className="w-full text-left border-collapse table-fixed">
           <tbody>
             {lines.map((line, i) => {
               let bg = 'bg-transparent';
@@ -42,10 +42,10 @@ export const ArtifactDiff = ({ diff, filename }: ArtifactDiffProps) => {
 
               return (
                 <tr key={i} className={bg}>
-                  <td className="w-8 text-right pr-2 select-none text-gray-400 font-mono bg-gray-100 border-r border-gray-200">
+                  <td className="w-8 text-right pr-2 select-none text-gray-400 font-mono bg-gray-100 border-r border-gray-200 shrink-0">
                     {i + 1}
                   </td>
-                  <td className={`pl-2 font-mono whitespace-pre-wrap break-all ${text}`}>
+                  <td className={`pl-2 font-mono break-words overflow-hidden ${text}`}>
                     {line}
                   </td>
                 </tr>
