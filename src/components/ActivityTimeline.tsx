@@ -1,5 +1,5 @@
 import useSWR from 'swr';
-import { getActivities, sendMessage } from '../lib/api';
+import { getActivities, sendMessage, getSession, approvePlan } from '../lib/api';
 import type { Activity } from '../types/jules';
 import { ArtifactDiff } from './ArtifactDiff';
 import { CheckCircle2, CircleDashed, XCircle, Bot, User, Clock } from 'lucide-react';
@@ -19,6 +19,24 @@ export const ActivityTimeline = ({ apiKey, sessionId }: ActivityTimelineProps) =
 
 
   // Poll every 5 seconds
+  const { data: sessionData } = useSWR(
+    apiKey && sessionId ? ["session", apiKey, sessionId] : null,
+    ([, key, id]) => getSession(key, id),
+    { refreshInterval: 5000 }
+  );
+
+  const handleApprovePlan = async () => {
+    setIsSending(true);
+    setSendError(null);
+    try {
+      await approvePlan(apiKey, sessionId);
+    } catch (err: any) {
+      setSendError(err.message || "Failed to approve plan");
+    } finally {
+      setIsSending(false);
+    }
+  };
+
   const { data, error } = useSWR(
     apiKey && sessionId ? ['activities', apiKey, sessionId] : null,
     ([, key, id]) => getActivities(key, id),
@@ -63,6 +81,13 @@ export const ActivityTimeline = ({ apiKey, sessionId }: ActivityTimelineProps) =
         <span>Session Timeline</span>
         <span className="text-xs text-gray-500 font-normal">Polling active...</span>
       </h2>
+
+            {sessionData && sessionData.state === "AWAITING_PLAN_APPROVAL" && (
+        <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg flex flex-col gap-3 items-center text-center">
+          <p className="text-sm text-yellow-800">Jules is waiting for your approval to proceed with the generated plan.</p>
+          <button onClick={handleApprovePlan} disabled={isSending} className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white text-sm font-semibold rounded shadow transition disabled:bg-gray-400">Approve Plan</button>
+        </div>
+      )}
 
       <div className="flex flex-col gap-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-gray-200 before:to-transparent">
         {!showAll && sortedActivities.length > 5 && (
@@ -122,6 +147,14 @@ const ActivityItem = ({ activity }: { activity: Activity }) => {
   };
 
   const renderContent = () => {
+    if (activity.planApproved) {
+      return (
+        <div className="mt-2 text-sm bg-green-50 text-green-800 p-2 rounded border border-green-200 flex items-center gap-2">
+          <CheckCircle2 className="w-4 h-4" /> Plan Approved
+        </div>
+      );
+    }
+
     if (activity.planGenerated) {
       return (
         <div className="mt-2 text-sm bg-gray-50 p-3 rounded-md border border-gray-100">
@@ -173,6 +206,14 @@ const ActivityItem = ({ activity }: { activity: Activity }) => {
              if (artifact.changeSet && artifact.changeSet.gitPatch) {
                 return <ArtifactDiff key={i} diff={artifact.changeSet.gitPatch.unidiffPatch} filename={artifact.changeSet.gitPatch.suggestedCommitMessage} />;
              }
+             if (artifact.media) {
+               return (
+                 <div key={i} className="mt-2 rounded overflow-hidden border border-gray-200 shadow-sm">
+                   <img src={`data:${artifact.media.mimeType};base64,${artifact.media.data}`} alt="Artifact" className="w-full h-auto object-contain max-h-64 bg-gray-50" />
+                 </div>
+               );
+             }
+
              if (artifact.bashOutput) {
                 return (
                   <div key={i} className="bg-gray-900 text-green-400 p-2 rounded text-xs overflow-x-auto whitespace-pre-wrap font-mono">
@@ -184,7 +225,7 @@ const ActivityItem = ({ activity }: { activity: Activity }) => {
              }
              return (
       <div className="mt-2 text-xs bg-gray-100 text-gray-800 p-2 rounded-md overflow-x-auto whitespace-pre-wrap break-all">
-        {JSON.stringify(activity, null, 2)}
+        {JSON.stringify(artifact, null, 2)}
       </div>
     );
           })}

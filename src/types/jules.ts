@@ -71,6 +71,7 @@ export interface Activity {
     description: string;
   };
   artifacts?: any[];
+  planApproved?: { planId: string };
   sessionCompleted?: any;
   agentMessaged?: { agentMessage: string };
   userMessaged?: { userMessage: string };
