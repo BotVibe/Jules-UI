@@ -104,3 +104,11 @@ export const sendMessage = async (apiKey: string, sessionId: string, prompt: str
     body: JSON.stringify({ prompt }),
   });
 };
+
+export const approvePlan = async (apiKey: string, sessionId: string): Promise<void> => {
+  await fetchWithHandler<void>(`${JULES_API_BASE_URL}/sessions/${sessionId}:approvePlan`, {
+    method: "POST",
+    headers: getHeaders(apiKey),
+    body: JSON.stringify({}),
+  });
+};
