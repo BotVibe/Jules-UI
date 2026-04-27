@@ -18,7 +18,7 @@ export const BurgerMenu = ({ apiKey, activeSessionId, onNavigate }: BurgerMenuPr
     ([, key]) => getSessions(key)
   );
 
-  const activeSessions = (data?.sessions || []).filter(s => s.state !== "COMPLETED" && s.state !== "FAILED");
+  const sessionsList = (data?.sessions || []).filter(s => s.state !== "ARCHIVED");
 
   const handleRefresh = () => {
     mutate(["sessions", apiKey]);
@@ -56,17 +56,17 @@ export const BurgerMenu = ({ apiKey, activeSessionId, onNavigate }: BurgerMenuPr
               <div className="h-px bg-gray-200 mx-4 my-2"></div>
 
               <div className="px-4 py-2 flex items-center justify-between">
-                <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Active Sessions</span>
+                <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Sessions</span>
                 <button onClick={handleRefresh} className={`p-1 rounded text-gray-400 hover:text-blue-600 ${isValidating ? "animate-spin" : ""}`}>
                   <RefreshCw className="w-3.5 h-3.5" />
                 </button>
               </div>
 
               <div className="px-2 space-y-1">
-                {activeSessions.length === 0 ? (
-                  <div className="px-3 py-2 text-sm text-gray-400 italic">No active sessions</div>
+                {sessionsList.length === 0 ? (
+                  <div className="px-3 py-2 text-sm text-gray-400 italic">No sessions found</div>
                 ) : (
-                  activeSessions.map(session => {
+                  sessionsList.map(session => {
                     const sessionId = session.name.split("/").pop() || session.id;
                     const isActive = sessionId === activeSessionId;
                     return (
@@ -75,7 +75,12 @@ export const BurgerMenu = ({ apiKey, activeSessionId, onNavigate }: BurgerMenuPr
                         onClick={() => { onNavigate("session", sessionId); closeMenu(); }}
                         className={`w-full flex flex-col px-3 py-2 rounded-lg text-left truncate transition ${isActive ? "bg-blue-50 text-blue-700" : "hover:bg-gray-50"}`}
                       >
-                        <span className="text-sm font-medium truncate">{session.title || "Untitled Session"}</span>
+                        <span className="text-sm font-medium truncate flex items-center justify-between gap-2">
+                          {session.title || "Untitled Session"}
+                          <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${session.state === "COMPLETED" ? "bg-green-100 text-green-800" : session.state === "FAILED" ? "bg-red-100 text-red-800" : "bg-blue-100 text-blue-800"}`}>
+                            {session.state}
+                          </span>
+                        </span>
                         <span className="text-xs opacity-60 truncate">{session.prompt}</span>
                       </button>
                     )
