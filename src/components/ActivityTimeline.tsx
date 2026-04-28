@@ -196,7 +196,7 @@ const ActivityItem = ({ activity }: { activity: Activity }) => {
       const textToDisplay = msg || (Object.keys(activity.agentMessaged).length > 0 ? JSON.stringify(activity.agentMessaged) : null);
       if (textToDisplay && textToDisplay.trim() !== "{}") {
         blocks.push(
-          <div key="agent-msg" className="mt-2 text-sm bg-purple-50 text-purple-900 p-3 rounded-md whitespace-pre-wrap">
+        <div key="agent-msg" className="mt-2 text-sm bg-purple-50 text-purple-900 p-3 rounded-md whitespace-pre-wrap break-words">
             {textToDisplay}
           </div>
         );
@@ -207,7 +207,7 @@ const ActivityItem = ({ activity }: { activity: Activity }) => {
       const textToDisplay = msg || (Object.keys(activity.userMessaged).length > 0 ? JSON.stringify(activity.userMessaged) : null);
       if (textToDisplay && textToDisplay.trim() !== "{}") {
         blocks.push(
-          <div key="user-msg" className="mt-2 text-sm bg-gray-100 text-gray-800 p-3 rounded-md whitespace-pre-wrap">
+        <div key="user-msg" className="mt-2 text-sm bg-gray-100 text-gray-800 p-3 rounded-md whitespace-pre-wrap break-words">
             {textToDisplay}
           </div>
         );
