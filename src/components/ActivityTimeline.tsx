@@ -195,11 +195,34 @@ const ActivityItem = ({ activity }: { activity: Activity }) => {
       const msg = (activity.agentMessaged as any).agentMessage || (activity.agentMessaged as any).message || (activity.agentMessaged as any).text || (activity.agentMessaged as any).content;
       const textToDisplay = msg || (Object.keys(activity.agentMessaged).length > 0 ? JSON.stringify(activity.agentMessaged) : null);
       if (textToDisplay && textToDisplay.trim() !== "{}") {
-        blocks.push(
-        <div key="agent-msg" className="mt-2 text-sm bg-purple-50 text-purple-900 p-3 rounded-md whitespace-pre-wrap break-words">
-            {textToDisplay}
-          </div>
-        );
+        // Check if this message is just giving us PR/Branch links
+        const prMatch = textToDisplay.match(/https:\/\/github\.com\/[^\s"']+\/pull\/\d+/);
+        const branchMatch = textToDisplay.match(/https:\/\/github\.com\/[^\s"']+\/tree\/[^\s"']+/);
+
+        if (prMatch || branchMatch) {
+          const prUrl = prMatch ? prMatch[0] : null;
+          const branchUrl = branchMatch ? branchMatch[0] : null;
+          blocks.push(
+            <div key="agent-msg-links" className="mt-2 flex flex-wrap gap-2">
+              {branchUrl && (
+                <a href={branchUrl} target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 bg-white border border-purple-200 hover:bg-purple-50 rounded text-purple-700 text-xs font-semibold shadow-sm transition">
+                  Show Branch
+                </a>
+              )}
+              {prUrl && (
+                <a href={prUrl} target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded text-xs font-semibold shadow-sm transition">
+                  Show Pull Request
+                </a>
+              )}
+            </div>
+          );
+        } else {
+          blocks.push(
+            <div key="agent-msg" className="mt-2 text-sm bg-purple-50 text-purple-900 p-3 rounded-md whitespace-pre-wrap break-words">
+              {textToDisplay}
+            </div>
+          );
+        }
       }
     }
     if (activity.userMessaged) {
