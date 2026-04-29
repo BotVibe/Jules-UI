@@ -213,6 +213,47 @@ const ActivityItem = ({ activity }: { activity: Activity }) => {
         );
       }
     }
+    if (activity.sessionCompleted) {
+      // Extract links if they exist in the payload
+      const strPayload = JSON.stringify(activity.sessionCompleted);
+      const prMatch = strPayload.match(/https:\/\/github\.com\/[^\s"']+\/pull\/\d+/);
+      const branchMatch = strPayload.match(/https:\/\/github\.com\/[^\s"']+\/tree\/[^\s"']+/);
+      const repoMatch = strPayload.match(/https:\/\/github\.com\/[^\s"']+\/[^\s"']+/);
+
+      const prUrl = prMatch ? prMatch[0] : null;
+      const branchUrl = branchMatch ? branchMatch[0] : null;
+      // Fallback to a generic repo link if no specific PR/Branch is found but a GitHub link exists
+      const repoUrl = repoMatch ? repoMatch[0] : null;
+
+      blocks.push(
+        <div key="completed" className="mt-2 text-sm bg-green-50 text-green-900 p-3 rounded-md flex flex-col gap-2 border border-green-100">
+          <div className="flex items-center gap-2 font-medium">
+            <CheckCircle2 className="w-4 h-4 text-green-600" />
+            Session Completed Successfully
+          </div>
+          {(prUrl || branchUrl || repoUrl) && (
+            <div className="flex flex-wrap gap-2 mt-1">
+              {branchUrl && (
+                <a href={branchUrl} target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 bg-white border border-green-200 hover:bg-green-100 rounded text-green-700 text-xs font-semibold shadow-sm transition">
+                  Show Branch
+                </a>
+              )}
+              {prUrl && (
+                <a href={prUrl} target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded text-xs font-semibold shadow-sm transition">
+                  Show Pull Request
+                </a>
+              )}
+              {!prUrl && !branchUrl && repoUrl && (
+                <a href={repoUrl} target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 bg-white border border-green-200 hover:bg-green-100 rounded text-green-700 text-xs font-semibold shadow-sm transition">
+                  Open Repository
+                </a>
+              )}
+            </div>
+          )}
+        </div>
+      );
+    }
+
     if (activity.sessionFailed) {
       blocks.push(
         <div key="failed" className="mt-2 text-sm text-red-600 bg-red-50 p-2 rounded">
@@ -255,11 +296,15 @@ const ActivityItem = ({ activity }: { activity: Activity }) => {
     }
 
     if (blocks.length === 0) {
-      return (
-        <div className="mt-2 text-xs bg-gray-100 text-gray-800 p-2 rounded-md overflow-x-auto whitespace-pre-wrap break-all">
-          {JSON.stringify(activity, null, 2)}
-        </div>
-      );
+      // Last fallback: If we still have an empty block but it's a sessionCompleted, we've already handled it above so do nothing.
+      // Otherwise, show the debug JSON.
+      if (!activity.sessionCompleted) {
+        return (
+          <div className="mt-2 text-xs bg-gray-100 text-gray-800 p-2 rounded-md overflow-x-auto whitespace-pre-wrap break-all">
+            {JSON.stringify(activity, null, 2)}
+          </div>
+        );
+      }
     }
 
     return <>{blocks}</>;

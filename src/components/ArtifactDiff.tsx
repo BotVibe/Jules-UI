@@ -45,7 +45,7 @@ export const ArtifactDiff = ({ diff, filename }: ArtifactDiffProps) => {
                   <td className="w-8 text-right pr-2 select-none text-gray-400 font-mono bg-gray-100 border-r border-gray-200 shrink-0">
                     {i + 1}
                   </td>
-                  <td className={`pl-2 font-mono break-words overflow-hidden ${text}`}>
+                  <td className={`pl-2 font-mono whitespace-pre-wrap break-words overflow-hidden ${text}`}>
                     {line}
                   </td>
                 </tr>
