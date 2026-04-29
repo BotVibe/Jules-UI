@@ -122,21 +122,37 @@ export const ActivityTimeline = ({ apiKey, sessionId }: ActivityTimelineProps) =
       {!isLoading && !error && (
         <form onSubmit={handleSendMessage} className="mt-6 flex flex-col gap-2 pt-4 border-t border-gray-100">
           {sendError && <div className="text-xs text-red-600 bg-red-50 p-2 rounded">{sendError}</div>}
-          <div className="flex items-center gap-2">
-            <input
-              type="text"
+          <div className="flex items-end gap-2">
+            <textarea
               value={messagePrompt}
               onChange={(e) => setMessagePrompt(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  // If we're on a mobile device, we usually want Enter to just add a new line.
+                  // But standard textarea behavior does this already. If we specifically preventDefault,
+                  // it will submit on Enter (desktop style).
+                  // For a strictly mobile-first app, we can just let textarea do its default (newline)
+                  // and force the user to tap Send. Let's let default behavior happen for newlines.
+                  // However, if we want Desktop to submit on Enter, we can do this:
+                  if (window.innerWidth >= 768) {
+                    e.preventDefault();
+                    if (!isSending && messagePrompt.trim()) {
+                      handleSendMessage(e as any);
+                    }
+                  }
+                }
+              }}
               placeholder="Reply to Jules..."
-              className="flex-1 border rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50"
+              className="flex-1 border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 resize-none overflow-y-auto"
               disabled={isSending}
+              rows={Math.min(Math.max(messagePrompt.split('\n').length, 1), 5)}
             />
             <button
               type="submit"
               disabled={isSending || !messagePrompt.trim()}
-              className="p-2 rounded-full bg-blue-600 text-white disabled:bg-gray-400 hover:bg-blue-700 transition"
+              className="p-3 mb-0.5 rounded-full bg-blue-600 text-white disabled:bg-gray-400 hover:bg-blue-700 transition shrink-0"
             >
-              <Send className="w-4 h-4" />
+              <Send className="w-5 h-5" />
             </button>
           </div>
         </form>
