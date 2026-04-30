@@ -1,5 +1,5 @@
 import { useState } from "react";
-import useSWR, { mutate } from "swr";
+import useSWR, { useSWRConfig } from "swr";
 import { Menu, X, PlusCircle, Settings, RefreshCw } from "lucide-react";
 import { getSessions } from "../lib/api";
 
@@ -11,11 +11,13 @@ interface BurgerMenuProps {
 
 export const BurgerMenu = ({ apiKey, activeSessionId, onNavigate }: BurgerMenuProps) => {
   const [isOpen, setIsOpen] = useState(false);
+  const { mutate } = useSWRConfig();
 
   // Use SWR to load sessions.
   const { data, isValidating } = useSWR(
     isOpen && apiKey ? ["sessions", apiKey] : null,
-    ([, key]) => getSessions(key)
+    ([, key]) => getSessions(key),
+    { revalidateOnMount: true }
   );
 
   const sessionsList = (data?.sessions || []).filter(s => s.state !== "ARCHIVED");

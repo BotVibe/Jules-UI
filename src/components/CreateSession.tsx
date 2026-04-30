@@ -1,6 +1,5 @@
-import { mutate } from "swr";
 import { useState } from 'react';
-import useSWR from 'swr';
+import useSWR, { useSWRConfig } from 'swr';
 import { getSources, createSession } from '../lib/api';
 import type { CreateSessionRequest } from '../types/jules';
 
@@ -14,10 +13,12 @@ export const CreateSession = ({ apiKey, onSessionCreated }: CreateSessionProps) 
   const [selectedSource, setSelectedSource] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { mutate } = useSWRConfig();
 
   const { data: sourcesData, error: sourcesError } = useSWR(
     apiKey ? ['sources', apiKey] : null,
-    ([, key]) => getSources(key)
+    ([, key]) => getSources(key),
+    { revalidateOnMount: true }
   );
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -71,14 +72,14 @@ export const CreateSession = ({ apiKey, onSessionCreated }: CreateSessionProps) 
       )}
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <label className="flex flex-col gap-1 text-sm text-gray-600 w-full">
-            <div className="flex justify-between w-full">
-              <span>Source Repository</span>
-              <button type="button" onClick={() => mutate(["sources", apiKey])} className="text-blue-500 hover:text-blue-700 text-xs">Refresh</button>
-            </div>
+        <div className="flex flex-col gap-1 text-sm text-gray-600 w-full">
+          <div className="flex justify-between w-full">
+            <label htmlFor="source-select">Source Repository</label>
+            <button type="button" onClick={() => mutate(["sources", apiKey])} className="text-blue-500 hover:text-blue-700 text-xs">Refresh</button>
+          </div>
 
           <select
+            id="source-select"
             value={selectedSource}
             onChange={(e) => setSelectedSource(e.target.value)}
             required
@@ -91,7 +92,6 @@ export const CreateSession = ({ apiKey, onSessionCreated }: CreateSessionProps) 
               </option>
             ))}
           </select>
-        </label>
         </div>
 
         <label className="flex flex-col gap-1 text-sm text-gray-600 w-full">
